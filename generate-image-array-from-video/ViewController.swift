@@ -13,6 +13,7 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
     let imagePicker = UIImagePickerController()
     var videoURL: URL? {
         didSet {
+            imageCache.removeAllObjects()
             tableView.reloadData()
         }
     }
