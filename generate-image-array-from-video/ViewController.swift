@@ -42,19 +42,21 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
         let duration = CMTimeGetSeconds(asset.duration)
         let frameRate = 6.0
         
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        
         for i in 0..<Int(duration * frameRate) {
             let time = CMTimeMakeWithSeconds(Double(i) / frameRate, preferredTimescale: 600)
-            let generator = AVAssetImageGenerator(asset: asset)
-            generator.appliesPreferredTrackTransform = true
             
-            var actualTime: CMTime = CMTimeMake(value: 0, timescale: 0)
-            guard let cgImage = try? generator.copyCGImage(at: time, actualTime: &actualTime) else {
+            guard let cgImage = try? generator.copyCGImage(at: time, actualTime: nil) else {
                 continue
             }
             
-            let uiImage = UIImage(cgImage: cgImage)
-            imageArray.append(uiImage)
+            let compressedImageData = UIImage(cgImage: cgImage).jpegData(compressionQuality: 0.5)!
+            let compressedImage = UIImage(data: compressedImageData)!
+            imageArray.append(compressedImage)
         }
+        
         tableView.reloadData()
     }
     
