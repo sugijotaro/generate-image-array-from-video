@@ -16,6 +16,7 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
             tableView.reloadData()
         }
     }
+    let imageCache = NSCache<NSNumber, UIImage>()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,6 +33,10 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
     }
     
     func generateImage(for index: Int) -> UIImage? {
+        if let cachedImage = imageCache.object(forKey: NSNumber(value: index)) {
+            return cachedImage
+        }
+        
         guard let url = videoURL else {
             return nil
         }
@@ -51,6 +56,7 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
         
         let compressedImageData = UIImage(cgImage: cgImage).jpegData(compressionQuality: 0.5)!
         let compressedImage = UIImage(data: compressedImageData)!
+        imageCache.setObject(compressedImage, forKey: NSNumber(value: index))
         return compressedImage
     }
     
