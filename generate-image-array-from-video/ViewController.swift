@@ -92,6 +92,12 @@ extension TableViewController: UIImagePickerControllerDelegate {
             return
         }
         videoURL = url
+        let numFrames = Int(30.0 * 6.0)
+        for i in 0..<numFrames {
+            if let image = generateImage(for: i) {
+                imageCache.setObject(image, forKey: i as NSNumber)
+            }
+        }
         imagePicker.dismiss(animated: true, completion: nil)
     }
     
