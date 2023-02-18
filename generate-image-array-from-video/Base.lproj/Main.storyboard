@@ -33,7 +33,7 @@
                     <navigationItem key="navigationItem" id="cHu-9K-zEK">
                         <barButtonItem key="rightBarButtonItem" title="Generate" id="pwy-Cq-8YD">
                             <connections>
-                                <action selector="chooseVideoButtonTapped:" destination="n0p-7o-N70" id="qis-IT-Jfe"/>
+                                <action selector="generateButtonTapped:" destination="n0p-7o-N70" id="bGs-gX-ySK"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>

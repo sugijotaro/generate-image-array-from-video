@@ -27,7 +27,9 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
         imagePicker.allowsEditing = true
     }
     
-    @IBAction func chooseVideoButtonTapped(_ sender: Any) {
+    @IBAction func generateButtonTapped(_ sender: Any) {
+        imageArray = []
+        tableView.reloadData()
         present(imagePicker, animated: true, completion: nil)
     }
     
