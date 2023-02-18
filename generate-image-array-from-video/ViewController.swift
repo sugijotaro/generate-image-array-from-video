@@ -13,10 +13,9 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
     let imagePicker = UIImagePickerController()
     var videoURL: URL? {
         didSet {
-            prepareImages()
+            tableView.reloadData()
         }
     }
-    var imageArray = [UIImage]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,14 +27,13 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
     }
     
     @IBAction func generateButtonTapped(_ sender: Any) {
-        imageArray = []
         tableView.reloadData()
         present(imagePicker, animated: true, completion: nil)
     }
     
-    func prepareImages() {
+    func generateImage(for index: Int) -> UIImage? {
         guard let url = videoURL else {
-            return
+            return nil
         }
         
         let asset = AVAsset(url: url)
@@ -45,28 +43,32 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
         
-        for i in 0..<Int(duration * frameRate) {
-            let time = CMTimeMakeWithSeconds(Double(i) / frameRate, preferredTimescale: 600)
-            
-            guard let cgImage = try? generator.copyCGImage(at: time, actualTime: nil) else {
-                continue
-            }
-            
-            let compressedImageData = UIImage(cgImage: cgImage).jpegData(compressionQuality: 0.5)!
-            let compressedImage = UIImage(data: compressedImageData)!
-            imageArray.append(compressedImage)
+        let time = CMTimeMakeWithSeconds(Double(index) / frameRate, preferredTimescale: 600)
+        
+        guard let cgImage = try? generator.copyCGImage(at: time, actualTime: nil) else {
+            return nil
         }
         
-        tableView.reloadData()
+        let compressedImageData = UIImage(cgImage: cgImage).jpegData(compressionQuality: 0.5)!
+        let compressedImage = UIImage(data: compressedImageData)!
+        return compressedImage
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return imageArray.count
+        guard let url = videoURL else {
+            return 0
+        }
+        let asset = AVAsset(url: url)
+        let duration = CMTimeGetSeconds(asset.duration)
+        let frameRate = 6.0
+        return Int(duration * frameRate)
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        cell.imageView?.image = imageArray[indexPath.row]
+        if let image = generateImage(for: indexPath.row) {
+            cell.imageView?.image = image
+        }
         return cell
     }
 }
