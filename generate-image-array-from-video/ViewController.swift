@@ -44,20 +44,34 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
         
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
+        generator.requestedTimeToleranceBefore = CMTime.zero
+        generator.requestedTimeToleranceAfter = CMTime.zero
         
-        for i in 0..<Int(duration * frameRate) {
-            let time = CMTimeMakeWithSeconds(Double(i) / frameRate, preferredTimescale: 600)
+        let times = stride(from: 0.0, to: duration, by: 1.0 / frameRate).map { CMTimeMakeWithSeconds($0, preferredTimescale: 600) }
+        
+        let dispatchGroup = DispatchGroup()
+        
+        for time in times {
+            dispatchGroup.enter()
             
-            guard let cgImage = try? generator.copyCGImage(at: time, actualTime: nil) else {
-                continue
+            generator.generateCGImagesAsynchronously(forTimes: [NSValue(time: time)]) { _, cgImage, _, _, error in
+                if let error = error {
+                    print("Failed to generate CGImage at time: \(time), with error: \(error.localizedDescription)")
+                } else if let cgImage = cgImage {
+                    let compressedImageData = UIImage(cgImage: cgImage).jpegData(compressionQuality: 0.5)!
+                    let compressedImage = UIImage(data: compressedImageData)!
+                    DispatchQueue.main.async {
+                        self.imageArray.append(compressedImage)
+                        print("Generated and appended image for time: \(time)")
+                    }
+                }
+                dispatchGroup.leave()
             }
-            
-            let compressedImageData = UIImage(cgImage: cgImage).jpegData(compressionQuality: 0.5)!
-            let compressedImage = UIImage(data: compressedImageData)!
-            imageArray.append(compressedImage)
         }
         
-        tableView.reloadData()
+        dispatchGroup.notify(queue: .main) {
+            self.tableView.reloadData()
+        }
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
